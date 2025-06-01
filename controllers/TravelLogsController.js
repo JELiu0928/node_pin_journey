@@ -1,9 +1,9 @@
 import pool from "../db.js";
 
 // 測試連線
-pool.connect()
-  .then(() => console.log('✅ PostgreSQL 連線成功~~~~~'))
-  .catch(err => console.error('❌ PostgreSQL 連線失敗~~~~~c', err));
+// pool.connect()
+//   .then(() => console.log('✅ PostgreSQL 連線成功'))
+//   .catch(err => console.error('❌ PostgreSQL 連線失敗', err));
 
 // PostgreSQL版
 const getAllTravelLogs = async (req, res) => {
