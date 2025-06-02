@@ -1,8 +1,8 @@
 import pool from "../db.js";
-
+const testID = 2;
 const getAllTravelLogs = async (req, res) => {
 	try {
-		const newRows = await getFormattedLogs(1);
+		const newRows = await getFormattedLogs(testID);
 		if (newRows.length === 0) {
 			return res.status(404).json({ success: false, error: "沒有找到任何紀錄" });
 		}
@@ -22,12 +22,12 @@ const addTravelLog = async (req, res) => {
 		}
 		const { name, address, category, rating, description, visitDate, coordinate } = req.body;
 		const { lat, lng } = coordinate;
-		const [result] = await pool.query("INSERT INTO travel_logs (user_id, name, address, category, rating, description, lat, lng, visit_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", ["1", name, address, category, rating, description, lat, lng, visitDate]);
+		const [result] = await pool.query("INSERT INTO travel_logs (user_id, name, address, category, rating, description, lat, lng, visit_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", [testID, name, address, category, rating, description, lat, lng, visitDate]);
 		console.log("addTravelLog-result", result);
 		if (result.affectedRows > 0) {
 			// 藉由 result.insertId 取得剛插入的資料的 ID，回傳名稱給前端
 			const [rows] = await pool.query("select * from travel_logs where id = ?", [result.insertId]);
-			const newRows = await getFormattedLogs(1);
+			const newRows = await getFormattedLogs(testID);
 			const insertLocalName = rows[0].name;
 
 			res.status(201).json({ success: true, msg: `${insertLocalName} 新增成功`, logs: newRows });
@@ -46,7 +46,7 @@ const editTravelLog = async (req, res) => {
 			return res.status(400).json({ error: message });
 		}
 		const editId = req.params.id;
-		const [checkRow] = await pool.query("SELECT id FROM travel_logs WHERE id = ? AND user_id = 1", [editId]);
+		const [checkRow] = await pool.query(`SELECT id FROM travel_logs WHERE id = ? AND user_id = ?`, [editId, testID]);
 		if (checkRow.length === 0) {
 			return res.status(404).json({ error: "找不到該筆資料" });
 		}
@@ -59,10 +59,10 @@ const editTravelLog = async (req, res) => {
 			coordinate: { lat, lng },
 		} = req.body;
 
-		const [result] = await pool.query("UPDATE travel_logs SET category = ?, rating = ?, description = ?, visit_date = ? ,lat = ?,lng = ? WHERE user_id = 1 and id = ?  ", [category, rating, description, visitDate, lat, lng, editId]);
+		const [result] = await pool.query("UPDATE travel_logs SET category = ?, rating = ?, description = ?, visit_date = ? ,lat = ?,lng = ? WHERE id = ? AND user_id = ?", [category, rating, description, visitDate, lat, lng, editId, testID]);
 		console.log("editTravelLog-result", result);
 		if (result.affectedRows > 0) {
-			const newRows = await getFormattedLogs(1);
+			const newRows = await getFormattedLogs(testID);
 			res.status(200).json({ success: true, msg: "編輯成功。", logs: newRows });
 		} else {
 			res.status(400).json({ success: false, error: "編輯失敗。" });
@@ -75,13 +75,13 @@ const editTravelLog = async (req, res) => {
 const delTravelLog = async (req, res) => {
 	try {
 		const delId = req.params.id;
-		const [checkRow] = await pool.query("SELECT id FROM travel_logs WHERE id = ? AND user_id = 1", [delId]);
+		const [checkRow] = await pool.query("SELECT id FROM travel_logs WHERE id = ? AND user_id = ?", [delId, testID]);
 		if (checkRow.length === 0) return res.status(404).json({ success: false, error: "找不到該筆資料。" });
 
-		const [result] = await pool.query("DELETE FROM travel_logs WHERE user_id = 1 AND id = ?", [delId]);
+		const [result] = await pool.query("DELETE FROM travel_logs WHERE id = ? AND user_id = ?", [delId, testID]);
 		if (result.affectedRows === 0) res.status(400).json({ success: false, error: "刪除失敗。" });
 
-		const newRows = await getFormattedLogs(1);
+		const newRows = await getFormattedLogs(testID);
 		res.status(200).json({ success: true, msg: "刪除成功。", logs: newRows });
 	} catch (error) {
 		console.error("fetch失敗", error);

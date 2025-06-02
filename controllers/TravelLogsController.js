@@ -1,5 +1,5 @@
 import pool from "../db.js";
-
+const testID = 2
 // 測試連線
 // pool.connect()
 //   .then(() => console.log('✅ PostgreSQL 連線成功'))
@@ -8,7 +8,7 @@ import pool from "../db.js";
 // PostgreSQL版
 const getAllTravelLogs = async (req, res) => {
 	try {
-		const newRows = await getFormattedLogs(1);
+		const newRows = await getFormattedLogs(testID);
 		if (newRows.length === 0) {
 			return res.status(404).json({ success: false, error: "沒有找到任何紀錄" });
 		}
@@ -31,12 +31,12 @@ const addTravelLog = async (req, res) => {
 			`INSERT INTO travel_logs 
 			(user_id, name, address, category, rating, description, lat, lng, visit_date) 
 			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
-			["1", name, address, category, rating, description, lat, lng, visitDate]
+			[testID, name, address, category, rating, description, lat, lng, visitDate]
 		);
 
 		const insertId = insertResult.rows[0].id;
 		const rowResult = await pool.query("SELECT * FROM travel_logs WHERE id = $1", [insertId]);
-		const newRows = await getFormattedLogs(1);
+		const newRows = await getFormattedLogs(testID);
 
 		res.status(201).json({ success: true, msg: `${rowResult.rows[0].name} 新增成功`, logs: newRows });
 	} catch (error) {
@@ -51,7 +51,7 @@ const editTravelLog = async (req, res) => {
 		if (!valid) return res.status(400).json({ error: message });
 
 		const editId = req.params.id;
-		const checkRow = await pool.query("SELECT id FROM travel_logs WHERE id = $1 AND user_id = $2", [editId, 1]);
+		const checkRow = await pool.query("SELECT id FROM travel_logs WHERE id = $1 AND user_id = $2", [editId, testID]);
 
 		if (checkRow.rows.length === 0) return res.status(404).json({ error: "找不到該筆資料" });
 
@@ -61,7 +61,7 @@ const editTravelLog = async (req, res) => {
 			`UPDATE travel_logs 
 			 SET category = $1, rating = $2, description = $3, visit_date = $4, lat = $5, lng = $6 
 			 WHERE user_id = $7 AND id = $8`,
-			[category, rating, description, visitDate, lat, lng, 1, editId]
+			[category, rating, description, visitDate, lat, lng, testID, editId]
 		);
 
 		if (updateResult.rowCount > 0) {
@@ -79,15 +79,15 @@ const editTravelLog = async (req, res) => {
 const delTravelLog = async (req, res) => {
 	try {
 		const delId = req.params.id;
-		const checkRow = await pool.query("SELECT id FROM travel_logs WHERE id = $1 AND user_id = $2", [delId, 1]);
+		const checkRow = await pool.query("SELECT id FROM travel_logs WHERE id = $1 AND user_id = $2", [delId, testID]);
 
 		if (checkRow.rows.length === 0) return res.status(404).json({ success: false, error: "找不到該筆資料。" });
 
-		const deleteResult = await pool.query("DELETE FROM travel_logs WHERE user_id = $1 AND id = $2", [1, delId]);
+		const deleteResult = await pool.query("DELETE FROM travel_logs WHERE user_id = $1 AND id = $2", [testID, delId]);
 
 		if (deleteResult.rowCount === 0) return res.status(400).json({ success: false, error: "刪除失敗。" });
 
-		const newRows = await getFormattedLogs(1);
+		const newRows = await getFormattedLogs(testID);
 		res.status(200).json({ success: true, msg: "刪除成功。", logs: newRows });
 	} catch (error) {
 		console.error("fetch失敗", error);
