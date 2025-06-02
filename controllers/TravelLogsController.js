@@ -65,7 +65,7 @@ const editTravelLog = async (req, res) => {
 		);
 
 		if (updateResult.rowCount > 0) {
-			const newRows = await getFormattedLogs(1);
+			const newRows = await getFormattedLogs(testID);
 			res.status(200).json({ success: true, msg: "編輯成功。", logs: newRows });
 		} else {
 			res.status(400).json({ success: false, error: "編輯失敗。" });
